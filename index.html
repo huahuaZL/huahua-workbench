@@ -27,6 +27,10 @@
     --sleep-light: #e8f0ff;
     --weight: #2ec4b6;
     --weight-light: #e3f7f4;
+    --period: #e0728c;
+    --period-light: #ffe3ec;
+    --screen: #9b6dff;
+    --screen-light: #f1ebff;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -345,6 +349,51 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* ===== 生理期 / 屏幕 配色 ===== */
+  .goal-item.period-tone { background: var(--period-light); }
+  .goal-item.period-tone .value { color: var(--period); }
+  .goal-item.screen-tone { background: var(--screen-light); }
+  .goal-item.screen-tone .value { color: var(--screen); }
+
+  /* 日历 */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .cal-nav { display: flex; gap: 8px; }
+  .cal-nav button {
+    border: none; background: var(--period-light); color: var(--period);
+    width: 36px; height: 36px; border-radius: 12px; cursor: pointer; font-size: 18px;
+    transition: all .2s;
+  }
+  .cal-nav button:hover { background: var(--period); color: #fff; }
+  .cal-title { font-size: 16px; font-weight: 700; color: var(--period); }
+  .cal-week { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-bottom: 6px; }
+  .cal-week span { text-align: center; font-size: 12px; color: var(--text-light); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; }
+  .cal-cell {
+    aspect-ratio: 1 / 1; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; background: #faf3f6; position: relative; transition: all .15s; color: var(--text);
+  }
+  .cal-cell.muted { color: #e2d3da; background: #fbf7f9; }
+  .cal-cell.today { box-shadow: 0 0 0 2px var(--period) inset; font-weight: 700; }
+  .cal-cell.period { background: linear-gradient(135deg, var(--period-light), var(--period)); color: #fff; font-weight: 700; }
+  .cal-cell.predicted { background: var(--period-light); color: var(--period); font-weight: 600; }
+  .cal-cell.fertile { background: #e8f0ff; color: var(--sleep); }
+  .cal-cell.clickable { cursor: pointer; }
+  .cal-cell.clickable:hover { transform: scale(1.07); }
+  .cal-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; font-size: 12px; color: var(--text-light); }
+  .cal-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 5px; vertical-align: -1px; }
+
+  /* 护眼提醒弹窗 */
+  .reminder-overlay {
+    position: fixed; inset: 0; background: rgba(92,74,82,.5);
+    display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px;
+  }
+  .reminder-box {
+    background: #fff; border-radius: 26px; padding: 30px 26px; text-align: center;
+    max-width: 320px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  }
+  .eye-timer { font-size: 26px; font-weight: 700; color: var(--screen); margin: 6px 0 2px; }
+  .eye-status { font-size: 13px; color: var(--text-light); }
+
   @media (max-width: 820px) {
     .app-shell { flex-direction: column; gap: 12px; align-items: stretch; }
     .sidebar {
@@ -384,6 +433,8 @@
         <div class="nav-item active" data-view="save"><span class="ni-emoji">💰</span>攒钱</div>
         <div class="nav-item" data-view="sleep"><span class="ni-emoji">😴</span>睡眠</div>
         <div class="nav-item" data-view="weight"><span class="ni-emoji">⚖️</span>体重</div>
+        <div class="nav-item" data-view="period"><span class="ni-emoji">🌸</span>生理期</div>
+        <div class="nav-item" data-view="screen"><span class="ni-emoji">📱</span>屏幕</div>
       </nav>
       <div class="sidebar-foot">
         每天一点点<br>慢慢变成更好的自己 🌱
@@ -673,15 +724,131 @@
           </div>
           <div class="chart-card">
             <div class="chart-title">最近体重曲线</div>
-            <svg class="chart" id="weightChart" viewBox="0 0 600 220" preserveAspectRatio="xMidYMid meet"></svg>
+          <svg class="chart" id="weightChart" viewBox="0 0 600 220" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 生理期 ===== -->
+    <section class="view" id="view-period" style="display:none">
+      <h2 class="view-title">🌸 生理期记录</h2>
+
+      <div class="card pet-stage" id="periodStage" style="background:linear-gradient(180deg,#fff6f9,#ffe9f0);">
+        <div style="font-size:46px;">💗</div>
+        <div class="mood-text" id="periodMoodText"></div>
+        <div class="mood-sub" id="periodMoodSub"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">⚙️ 周期设置</h2>
+        <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+          <label style="font-size:13px; color:var(--text-light);">上次月经第一天
+            <input type="date" id="periodAnchor" class="deposit-input" style="width:auto; min-width:160px; margin-top:6px; display:block;">
+          </label>
+          <label style="font-size:13px; color:var(--text-light);">周期长度(天)
+            <input type="number" id="periodCycle" class="deposit-input" style="width:90px; margin-top:6px; display:block;" min="15" max="45">
+          </label>
+          <label style="font-size:13px; color:var(--text-light);">经期天数
+            <input type="number" id="periodDuration" class="deposit-input" style="width:80px; margin-top:6px; display:block;" min="2" max="12">
+          </label>
+          <button class="deposit-btn" id="periodSaveBtn" style="background:linear-gradient(135deg,var(--period-light),var(--period)); box-shadow:0 4px 12px rgba(224,114,140,.35);">保存设置</button>
+        </div>
+        <p style="font-size:12px; color:var(--text-light); margin-top:10px;">💡 在下面的日历上点一下某天，可以手动补记 / 取消那天是经期（用来修正预测）</p>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">📅 经期日历</h2>
+        <div class="goal-grid">
+          <div class="goal-item period-tone">
+            <div class="label">下次预计来</div>
+            <div class="value" id="periodNext">--</div>
+          </div>
+          <div class="goal-item">
+            <div class="label">倒计时</div>
+            <div class="value" id="periodCountdown">--</div>
+          </div>
+          <div class="goal-item remain">
+            <div class="label">今天状态</div>
+            <div class="value" id="periodToday">--</div>
           </div>
         </div>
-      </section>
-    </main>
+        <div class="cal-head">
+          <div class="cal-nav"><button id="calPrev">‹</button></div>
+          <div class="cal-title" id="calTitle"></div>
+          <div class="cal-nav"><button id="calNext">›</button></div>
+        </div>
+        <div class="cal-week">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend">
+          <span><i style="background:linear-gradient(135deg,var(--period-light),var(--period));"></i>经期（已发生）</span>
+          <span><i style="background:var(--period-light);"></i>经期（预测）</span>
+          <span><i style="background:#e8f0ff;"></i>排卵期</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 屏幕 / 护眼 ===== -->
+    <section class="view" id="view-screen" style="display:none">
+      <h2 class="view-title">📱 屏幕使用与护眼</h2>
+
+      <div class="card" style="text-align:center;">
+        <div style="font-size:46px;">🦉</div>
+        <div class="eye-status">本工作台今日累计亮屏</div>
+        <div class="eye-timer" id="screenAutoTimer">0 分 0 秒</div>
+        <div class="today-status" id="screenTodayStatus"></div>
+        <div class="deposit-row" style="margin-top:14px;">
+          <input class="deposit-input" id="screenManualInput" type="number" min="0" step="0.1" placeholder="手机实际使用时长(小时)">
+          <button class="deposit-btn" id="screenManualBtn" style="background:linear-gradient(135deg,#b794ff,var(--screen)); box-shadow:0 4px 12px rgba(155,109,255,.35);">记录 📱</button>
+        </div>
+        <p style="font-size:12px; color:var(--text-light); margin-top:10px;">⚠️ 网页无法直接读取手机系统的亮屏统计。这里记录的是<strong>本工作台打开的时长</strong>；手机真实总时长请在系统「屏幕使用时间 / 数字健康」里查看后填到上面。</p>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">👀 护眼提醒（20-20-20）</h2>
+        <div class="goal-grid">
+          <div class="goal-item screen-tone">
+            <div class="label">提醒间隔(分钟)</div>
+            <div class="value" id="eyeIntervalVal">20</div>
+            <button class="edit-btn" data-edit="eyeInterval">✏️ 修改</button>
+          </div>
+          <div class="goal-item">
+            <div class="label">距下次提醒</div>
+            <div class="value" id="eyeCountdown">--</div>
+          </div>
+          <div class="goal-item remain">
+            <div class="label">今日已提醒</div>
+            <div class="value" id="eyeCount">0</div>
+          </div>
+        </div>
+        <div style="text-align:center; margin-top:12px;">
+          <button class="deposit-btn" id="eyeTestBtn" style="background:linear-gradient(135deg,#b794ff,var(--screen));">测试提醒 🔔</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">📊 最近屏幕时长</h2>
+        <div class="chart-card">
+          <div class="chart-title">每日屏幕使用(小时)</div>
+          <svg class="chart" id="screenChart" viewBox="0 0 600 220" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+      </div>
+    </section>
+  </main>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="reminder-overlay" id="reminderOverlay">
+  <div class="reminder-box">
+    <div style="font-size:46px;">👀</div>
+    <h3 style="color:var(--screen); margin:8px 0;">该让眼睛休息啦</h3>
+    <p style="font-size:14px; color:var(--text-light); line-height:1.7;">看向 6 米外远处，眨眼 20 下，<br>停留 20 秒，给眼睛放个小假～</p>
+    <button class="deposit-btn" id="reminderOk" style="margin-top:16px; background:linear-gradient(135deg,#b794ff,var(--screen));">好的，休息一下 ✅</button>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -696,6 +863,10 @@
     var y = new Date(); y.setDate(y.getDate() - 1);
     return y.getFullYear() + '-' + pad2(y.getMonth() + 1) + '-' + pad2(y.getDate());
   }
+  function defaultAnchor() {
+    var d = new Date(); d.setDate(d.getDate() - 14);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
 
   function defaultData() {
     return {
@@ -703,7 +874,9 @@
       projects: {
         save: { goal: 50000, saved: 0, lastDepositDate: null, wateredDate: null, todayAmount: 0, todayDate: null, streak: 0, prevDepositDate: null },
         sleep: { records: [], target: 8, lastDate: null, streak: 0 },
-        weight: { records: [], target: 55, lastDate: null, streak: 0 }
+        weight: { records: [], target: 55, lastDate: null, streak: 0 },
+        period: { anchor: defaultAnchor(), cycle: 28, duration: 5, manual: {} },
+        screen: { target: 6, eyeInterval: 20, records: [], todayAuto: 0, todayDate: todayStr() }
       }
     };
   }
@@ -733,11 +906,24 @@
   if (!S.projects.save) S.projects.save = defaultData().projects.save;
   if (!S.projects.sleep) S.projects.sleep = defaultData().projects.sleep;
   if (!S.projects.weight) S.projects.weight = defaultData().projects.weight;
+  if (!S.projects.period) S.projects.period = defaultData().projects.period;
+  if (!S.projects.screen) S.projects.screen = defaultData().projects.screen;
 
   // 跨天重置今日金额
   if (S.projects.save.todayDate !== todayStr()) {
     S.projects.save.todayAmount = 0;
     S.projects.save.todayDate = todayStr();
+    save();
+  }
+  // 屏幕：跨天把昨日累计亮屏快照存入记录（仅当无手动记录时）
+  if (S.projects.screen.todayDate !== todayStr()) {
+    var oldDate = S.projects.screen.todayDate;
+    if (S.projects.screen.todayAuto > 0) {
+      var hadManual = S.projects.screen.records.some(function (r) { return r.date === oldDate; });
+      if (!hadManual) S.projects.screen.records.push({ date: oldDate, value: Math.round(S.projects.screen.todayAuto / 36) / 100 });
+    }
+    S.projects.screen.todayAuto = 0;
+    S.projects.screen.todayDate = todayStr();
     save();
   }
 
@@ -786,6 +972,8 @@
     });
     if (name === 'sleep') renderSleep();
     if (name === 'weight') renderWeight();
+    if (name === 'period') renderPeriod();
+    if (name === 'screen') renderScreen();
   }
   document.querySelectorAll('.nav-item').forEach(function (it) {
     it.addEventListener('click', function () { switchView(it.dataset.view); });
@@ -1106,7 +1294,8 @@
       var cur = type === 'goal' ? P.goal
         : type === 'saved' ? P.saved
         : type === 'sleepTarget' ? S.projects.sleep.target
-        : type === 'weightTarget' ? S.projects.weight.target : 0;
+        : type === 'weightTarget' ? S.projects.weight.target
+        : type === 'eyeInterval' ? S.projects.screen.eyeInterval : 0;
       var input = document.createElement('input');
       input.type = 'number';
       input.className = 'goal-input';
@@ -1123,6 +1312,7 @@
           else if (type === 'saved') P.saved = v;
           else if (type === 'sleepTarget') S.projects.sleep.target = v;
           else if (type === 'weightTarget') S.projects.weight.target = v;
+          else if (type === 'eyeInterval') S.projects.screen.eyeInterval = Math.min(120, Math.max(1, Math.round(v)));
           save();
         }
         input.remove();
@@ -1131,7 +1321,7 @@
           : type === 'saved' ? '✏️ 手动修改'
           : type === 'sleepTarget' ? '✏️ 修改'
           : '✏️ 修改';
-        render(); renderSleep(); renderWeight();
+        render(); renderSleep(); renderWeight(); renderScreen();
         toast('✅ 已更新！');
       }
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') commit(); });
@@ -1228,6 +1418,212 @@
     if (e.key === 'Enter') $('weightBtn').click();
   });
 
+  // ===== 生理期 =====
+  var periodViewMonth = { y: new Date().getFullYear(), m: new Date().getMonth() };
+  function fmtDate(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function parseDate(s) { var a = s.split('-'); return new Date(+a[0], +a[1] - 1, +a[2]); }
+  function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function markPeriod(set, startD, dur) { for (var i = 0; i < dur; i++) set[fmtDate(addDays(startD, i))] = true; }
+  function markFertile(fer, startD, cycle) {
+    var ov = addDays(startD, Math.max(1, cycle - 14));
+    for (var i = -5; i <= 1; i++) fer[fmtDate(addDays(ov, i))] = true;
+  }
+  function periodModel(p) {
+    var set = {}, fertile = {};
+    var anchor = parseDate(p.anchor);
+    var cycle = Math.max(15, Math.min(45, p.cycle || 28));
+    var dur = Math.max(2, Math.min(12, p.duration || 5));
+    var start = addDays(anchor, -540), end = addDays(anchor, 540);
+    var cur = new Date(anchor);
+    while (cur >= start) { markPeriod(set, cur, dur); markFertile(fertile, cur, cycle); cur = addDays(cur, -cycle); }
+    cur = new Date(anchor);
+    while (cur <= end) { markPeriod(set, cur, dur); markFertile(fertile, cur, cycle); cur = addDays(cur, cycle); }
+    if (p.manual) {
+      Object.keys(p.manual).forEach(function (k) {
+        if (p.manual[k]) set[k] = true; else delete set[k];
+      });
+    }
+    return { period: set, fertile: fertile };
+  }
+  function renderPeriod() {
+    var p = S.projects.period;
+    var model = periodModel(p);
+    var today = todayStr();
+    var inPeriod = !!model.period[today];
+    var inFertile = !!model.fertile[today];
+    $('periodToday').textContent = inPeriod ? '🌸 经期中' : (inFertile ? '💕 排卵期' : '✨ 安全期');
+    var next = null;
+    Object.keys(model.period).forEach(function (k) {
+      if (k >= today && (!next || k < next)) next = k;
+    });
+    if (inPeriod) {
+      next = null;
+      Object.keys(model.period).forEach(function (k) {
+        if (k > today && (!next || k < next)) next = k;
+      });
+    }
+    if (next) {
+      $('periodNext').textContent = next.slice(5).replace('-', '/');
+      var days = Math.ceil((parseDate(next) - parseDate(today)) / 86400000);
+      $('periodCountdown').textContent = days <= 0 ? '就是今天' : ('还有 ' + days + ' 天');
+    } else {
+      $('periodNext').textContent = '--';
+      $('periodCountdown').textContent = '--';
+    }
+    if (inPeriod) {
+      $('periodMoodText').textContent = '💗 好好照顾自己，喝点热水、早点休息～';
+      $('periodMoodSub').textContent = '这几天辛苦啦，工作台陪着你';
+    } else if (inFertile) {
+      $('periodMoodText').textContent = '💕 排卵期到了，注意身体变化';
+      $('periodMoodSub').textContent = '记录好状态，更了解自己';
+    } else {
+      $('periodMoodText').textContent = '✨ 安全期，状态稳稳的';
+      $('periodMoodSub').textContent = '保持好心情，每天都很珍贵';
+    }
+    $('periodAnchor').value = p.anchor;
+    $('periodCycle').value = p.cycle;
+    $('periodDuration').value = p.duration;
+    renderCalendar(p, model);
+  }
+  function renderCalendar(p, model) {
+    var y = periodViewMonth.y, m = periodViewMonth.m;
+    $('calTitle').textContent = y + ' 年 ' + (m + 1) + ' 月';
+    var first = new Date(y, m, 1);
+    var startW = first.getDay();
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
+    var prevDays = new Date(y, m, 0).getDate();
+    var cells = [];
+    for (var i = startW - 1; i >= 0; i--) cells.push({ d: prevDays - i, muted: true });
+    for (var d = 1; d <= daysInMonth; d++) cells.push({ d: d, muted: false });
+    while (cells.length % 7 !== 0) cells.push({ d: '', muted: true, empty: true });
+    var today = todayStr();
+    var html = '';
+    cells.forEach(function (c) {
+      if (c.empty) { html += '<div class="cal-cell muted"></div>'; return; }
+      var cls = 'cal-cell';
+      var dateStr = '';
+      if (c.muted) {
+        cls += ' muted';
+      } else {
+        dateStr = fmtDate(new Date(y, m, c.d));
+        if (dateStr === today) cls += ' today';
+        if (model.period[dateStr]) cls += (dateStr <= today ? ' period' : ' predicted');
+        else if (model.fertile[dateStr]) cls += ' fertile';
+        cls += ' clickable';
+      }
+      html += '<div class="' + cls + '"' + (dateStr ? ' data-date="' + dateStr + '"' : '') + '>' + c.d + '</div>';
+    });
+    var grid = $('calGrid');
+    grid.innerHTML = html;
+    grid.querySelectorAll('.cal-cell.clickable').forEach(function (el) {
+      el.addEventListener('click', function () { togglePeriodDay(el.dataset.date); });
+    });
+  }
+  function togglePeriodDay(dateStr) {
+    var p = S.projects.period;
+    if (!p.manual) p.manual = {};
+    p.manual[dateStr] = !p.manual[dateStr];
+    save();
+    renderPeriod();
+    toast(p.manual[dateStr] ? '🌸 已标记为经期' : '已取消标记');
+  }
+  $('periodSaveBtn').addEventListener('click', function () {
+    var p = S.projects.period;
+    var a = $('periodAnchor').value;
+    var c = parseInt($('periodCycle').value, 10);
+    var du = parseInt($('periodDuration').value, 10);
+    if (!a) { toast('请选择上次月经第一天～'); return; }
+    if (!c || c < 15 || c > 45) { toast('周期长度填 15–45 天哦'); return; }
+    if (!du || du < 2 || du > 12) { toast('经期天数填 2–12 天哦'); return; }
+    p.anchor = a; p.cycle = c; p.duration = du;
+    save();
+    renderPeriod();
+    toast('✅ 周期设置已保存');
+  });
+  $('calPrev').addEventListener('click', function () {
+    periodViewMonth.m--; if (periodViewMonth.m < 0) { periodViewMonth.m = 11; periodViewMonth.y--; }
+    renderPeriod();
+  });
+  $('calNext').addEventListener('click', function () {
+    periodViewMonth.m++; if (periodViewMonth.m > 11) { periodViewMonth.m = 0; periodViewMonth.y++; }
+    renderPeriod();
+  });
+
+  // ===== 屏幕 / 护眼 =====
+  var eyeState = { last: Date.now(), count: 0 };
+  function updateScreenTimer() {
+    var secs = S.projects.screen.todayAuto || 0;
+    var h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+    var el = $('screenAutoTimer');
+    if (el) el.textContent = (h > 0 ? h + ' 时 ' : '') + m + ' 分 ' + s + ' 秒';
+  }
+  function screenManualToday() {
+    var p = S.projects.screen, t = todayStr();
+    var r = p.records.filter(function (x) { return x.date === t; })[0];
+    return r ? r.value : null;
+  }
+  function renderScreen() {
+    var p = S.projects.screen;
+    updateScreenTimer();
+    var man = screenManualToday();
+    if (man != null) {
+      $('screenTodayStatus').innerHTML = '今日手机使用 <b>' + man + ' 小时</b> ，记得让眼睛休息～';
+    } else {
+      var hh = ((p.todayAuto || 0) / 3600).toFixed(1);
+      $('screenTodayStatus').innerHTML = '本工作台已亮屏 <b>' + hh + ' 小时</b> ，手机真实时长可手动填入上方';
+    }
+    $('eyeIntervalVal').textContent = p.eyeInterval;
+    $('eyeCount').textContent = eyeState.count;
+    var disp = p.records.slice();
+    if (man == null && (p.todayAuto || 0) > 0) {
+      disp.push({ date: todayStr(), value: Math.round(p.todayAuto / 36) / 100 });
+    }
+    drawLineChart('screenChart', disp, { unit: 'h', target: p.target, color: '#9b6dff', max: 14 });
+  }
+  function showEyeReminder() {
+    eyeState.last = Date.now();
+    eyeState.count++;
+    var c = $('eyeCount'); if (c) c.textContent = eyeState.count;
+    var ov = $('reminderOverlay'); if (ov) ov.style.display = 'flex';
+  }
+  function startScreenTracking() {
+    var autoLast = Date.now(), lastSave = Date.now();
+    setInterval(function () {
+      var now = Date.now();
+      if (!document.hidden) {
+        var dt = Math.floor((now - autoLast) / 1000);
+        if (dt > 0) {
+          S.projects.screen.todayAuto = (S.projects.screen.todayAuto || 0) + dt;
+          autoLast = now;
+          if (now - lastSave > 8000) { save(); lastSave = now; }
+          updateScreenTimer();
+        }
+      } else { autoLast = now; }
+      var p = S.projects.screen;
+      var intervalMs = (p.eyeInterval || 20) * 60 * 1000;
+      var elapsed = now - eyeState.last;
+      var cd = $('eyeCountdown');
+      if (cd) cd.textContent = Math.ceil(Math.max(0, intervalMs - elapsed) / 60000) + ' 分';
+      if (elapsed >= intervalMs && !document.hidden) showEyeReminder();
+    }, 1000);
+  }
+  $('screenManualBtn').addEventListener('click', function () {
+    var p = S.projects.screen;
+    var v = parseFloat($('screenManualInput').value);
+    if (!v || v <= 0) { toast('输入一个大于 0 的小时数嘛～'); return; }
+    recordToday(p, Math.round(v * 10) / 10);
+    save();
+    $('screenManualInput').value = '';
+    renderScreen();
+    confetti();
+    toast('📱 记录成功！');
+  });
+  $('screenManualInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') $('screenManualBtn').click();
+  });
+  $('eyeTestBtn').addEventListener('click', function () { showEyeReminder(); });
+  $('reminderOk').addEventListener('click', function () { $('reminderOverlay').style.display = 'none'; });
+
   // ===== PWA 安装到手机桌面 =====
   var deferredPrompt = null;
   var installBar = $('installBar');
@@ -1283,6 +1679,7 @@
   initMood();
   refreshPetMoods();
   switchView('save');
+  startScreenTracking();
 })();
 </script>
 </body>
