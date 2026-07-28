@@ -54,36 +54,32 @@
     font-family: inherit;
   }
 
-  /* ===== APP 布局 ===== */
-  .app-shell { display: flex; gap: 20px; align-items: flex-start; }
-  .sidebar {
-    width: 210px; flex: 0 0 210px;
-    background: var(--card); border-radius: 24px; padding: 18px 14px;
-    box-shadow: 0 8px 24px rgba(251, 111, 146, 0.12);
-    position: sticky; top: 20px;
+  /* ===== APP 布局（顶部标签式） ===== */
+  .app-header {
+    text-align: center; margin-bottom: 16px;
   }
-  .brand {
-    text-align: center; font-size: 21px; color: var(--pink-deep);
-    font-weight: 700; letter-spacing: 1px; margin-bottom: 18px;
-    line-height: 1.5;
+  .app-header h1 {
+    font-size: 26px; color: var(--pink-deep); font-weight: 700;
+    letter-spacing: 1px;
   }
-  .sidebar nav { display: flex; flex-direction: column; gap: 8px; }
+  .tab-bar {
+    display: flex; gap: 10px; justify-content: center;
+    flex-wrap: nowrap; margin-bottom: 20px;
+  }
   .nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 13px 14px; border-radius: 16px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 999px; cursor: pointer;
     font-size: 15px; color: var(--text); transition: all .2s;
+    background: var(--card); box-shadow: 0 2px 10px rgba(251,111,146,.08);
+    white-space: nowrap; flex: 0 0 auto;
   }
-  .nav-item:hover { background: var(--pink-bg); }
+  .nav-item:hover { background: var(--pink-bg); transform: translateY(-1px); }
   .nav-item.active {
     background: linear-gradient(135deg, var(--pink-light), var(--pink-deep));
-    color: #fff; box-shadow: 0 4px 12px rgba(251,111,146,.3);
+    color: #fff; box-shadow: 0 4px 14px rgba(251,111,146,.35);
   }
-  .nav-item .ni-emoji { font-size: 20px; }
-  .sidebar-foot {
-    margin-top: 18px; padding-top: 14px; border-top: 1px dashed #f0dde4;
-    font-size: 11px; color: var(--text-light); text-align: center; line-height: 1.7;
-  }
-  .main { flex: 1; min-width: 0; }
+  .nav-item .ni-emoji { font-size: 18px; }
+  .main { width: 100%; }
 
   .view-title {
     font-size: 21px; color: var(--pink-deep); margin-bottom: 16px;
@@ -395,16 +391,17 @@
   .eye-status { font-size: 13px; color: var(--text-light); }
 
   @media (max-width: 820px) {
-    .app-shell { flex-direction: column; gap: 12px; align-items: stretch; }
-    .sidebar {
-      width: 100%; flex: none; position: static;
-      display: flex; flex-direction: column; padding: 12px 14px;
+    body { padding: 12px 10px 50px; }
+    .app-header h1 { font-size: 21px; }
+    .tab-bar {
+      gap: 6px; margin-bottom: 14px;
+      justify-content: flex-start;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
     }
-    .brand { font-size: 19px; margin-bottom: 12px; }
-    .sidebar nav { flex-direction: row; gap: 8px; overflow-x: auto; }
-    .nav-item { flex: 0 0 auto; margin-bottom: 0; padding: 10px 16px; white-space: nowrap; }
-    .sidebar-foot { display: none; }
-    .header h1 { font-size: 22px; }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .nav-item { padding: 9px 16px; font-size: 14px; border-radius: 999px; }
+    .nav-item .ni-emoji { font-size: 16px; }
     /* 目标三卡片：和电脑一样横排，仅更紧凑 */
     .goal-grid { gap: 8px; }
     .goal-item { padding: 12px 6px; }
@@ -420,29 +417,31 @@
     .split-item .hint { font-size: 10px; margin-top: 4px; }
     .deposit-input { width: 150px; }
     .today-card h2 { font-size: 16px; }
+    /* 日历格子缩小 */
+    .cal-cell { width: 34px; height: 34px; font-size: 13px; }
+    /* 屏幕卡片横排 */
+    .screen-row { flex-direction: column; gap: 12px; }
   }
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="app-shell">
-    <!-- 左侧项目列表 -->
-    <aside class="sidebar">
-      <div class="brand">🌸 <span id="ownerName" class="owner-name" title="点我改名字">花花</span>的2026小目标</div>
-      <nav>
-        <div class="nav-item active" data-view="save"><span class="ni-emoji">💰</span>攒钱</div>
-        <div class="nav-item" data-view="sleep"><span class="ni-emoji">😴</span>睡眠</div>
-        <div class="nav-item" data-view="weight"><span class="ni-emoji">⚖️</span>体重</div>
-        <div class="nav-item" data-view="period"><span class="ni-emoji">🌸</span>生理期</div>
-        <div class="nav-item" data-view="screen"><span class="ni-emoji">📱</span>屏幕</div>
-      </nav>
-      <div class="sidebar-foot">
-        每天一点点<br>慢慢变成更好的自己 🌱
-      </div>
-    </aside>
+  <!-- 顶部大标题 -->
+  <div class="app-header">
+    <h1>🌸 <span id="ownerName" class="owner-name" title="点我改名字">花花</span>的2026小目标</h1>
+  </div>
 
-    <!-- 右侧详情 -->
-    <main class="main">
+  <!-- 顶部标签栏 -->
+  <nav class="tab-bar">
+    <div class="nav-item active" data-view="save"><span class="ni-emoji">💰</span>攒钱</div>
+    <div class="nav-item" data-view="sleep"><span class="ni-emoji">😴</span>睡眠</div>
+    <div class="nav-item" data-view="weight"><span class="ni-emoji">⚖️</span>体重</div>
+    <div class="nav-item" data-view="period"><span class="ni-emoji">🌸</span>生理期</div>
+    <div class="nav-item" data-view="screen"><span class="ni-emoji">📱</span>屏幕</div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <main class="main">
       <!-- 安装引导（仅未装成 App 时显示） -->
       <div id="installArea">
         <div id="installBar" class="card install-card" style="display:none; text-align:center; padding:16px; background:linear-gradient(135deg,#fff8fa,#fdf1f5);">
@@ -836,7 +835,6 @@
       </div>
     </section>
   </main>
-  </div>
 </div>
 
 <div class="toast" id="toast"></div>
