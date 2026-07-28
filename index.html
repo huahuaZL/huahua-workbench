@@ -112,6 +112,28 @@
   }
   .mood-sub { text-align: center; font-size: 12px; color: var(--text-light); margin-top: 2px; min-height: 18px; }
 
+  /* ===== 小情绪动物舞台（睡眠/体重） ===== */
+  .pet-stage {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; overflow: hidden; margin-bottom: 14px;
+    background: linear-gradient(180deg, #fff8fa 0%, #fdf1f5 100%);
+    padding: 14px 16px 12px;
+  }
+  .pet-scene { position: relative; width: 130px; height: 130px; }
+  .pet-svg { width: 130px; height: 130px; display: block; }
+  .pet-stage.happy .pet-svg { animation: petWiggle 1.7s ease-in-out infinite; transform-origin: 50% 92%; }
+  .pet-stage.sad .pet-svg { animation: petDroop 2.6s ease-in-out infinite; transform-origin: 50% 92%; filter: saturate(.65); }
+  .pet-stage.pop .pet-svg { animation: petPop .6s ease; }
+  .zzz { opacity: 0; }
+  .pet-stage.happy .zzz { opacity: 1; animation: zzzFloat 2.4s ease-in-out infinite; }
+  .tear { opacity: 0; }
+  .pet-stage.sad .tear { opacity: 1; animation: tearDrop 1.7s ease-in-out infinite; }
+  @keyframes petWiggle { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+  @keyframes petDroop { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(4px) rotate(-3deg); } }
+  @keyframes petPop { 0% { transform: scale(1); } 35% { transform: scale(1.18); } 100% { transform: scale(1); } }
+  @keyframes zzzFloat { 0% { transform: translate(0,0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(10px,-26px); opacity: 0; } }
+  @keyframes tearDrop { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(24px); opacity: 0; } }
+
   svg .origin-bottom { transform-box: fill-box; transform-origin: 50% 100%; }
 
   /* 开心摇摆 */
@@ -527,6 +549,35 @@
       <section class="view" id="view-sleep" style="display:none">
         <h2 class="view-title">😴 睡眠打卡</h2>
 
+        <div class="card pet-stage" id="sleepStage">
+          <div class="pet-scene">
+            <svg class="pet-svg" viewBox="0 0 200 200">
+              <circle cx="100" cy="105" r="80" fill="#eaf1ff"/>
+              <path d="M52 78 L58 34 L96 64 Z" fill="#b9d2f7"/>
+              <path d="M148 78 L142 34 L104 64 Z" fill="#b9d2f7"/>
+              <path d="M60 70 L64 46 L86 64 Z" fill="#ffd1dc"/>
+              <path d="M140 70 L136 46 L114 64 Z" fill="#ffd1dc"/>
+              <circle cx="100" cy="112" r="58" fill="#cfe0fb"/>
+              <g id="sleepFaceHappy">
+                <path d="M68 104 q12 14 24 0" stroke="#5b6b8c" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M108 104 q12 14 24 0" stroke="#5b6b8c" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <circle cx="66" cy="126" r="9" fill="#ffb3c6" opacity=".7"/>
+                <circle cx="134" cy="126" r="9" fill="#ffb3c6" opacity=".7"/>
+                <path d="M86 128 q14 14 28 0" stroke="#5b6b8c" stroke-width="4" fill="none" stroke-linecap="round"/>
+              </g>
+              <g id="sleepFaceSad" style="display:none">
+                <path d="M68 110 q12 -12 24 0" stroke="#5b6b8c" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M108 110 q12 -12 24 0" stroke="#5b6b8c" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M86 134 q14 -12 28 0" stroke="#5b6b8c" stroke-width="4" fill="none" stroke-linecap="round"/>
+              </g>
+              <text class="zzz" x="150" y="58" font-size="22" font-weight="700" fill="#7ba6f5" font-family="sans-serif">Zzz</text>
+              <circle class="tear" cx="120" cy="116" r="6" fill="#7ec8e3"/>
+            </svg>
+          </div>
+          <div class="mood-text" id="sleepMoodText"></div>
+          <div class="mood-sub" id="sleepMoodSub"></div>
+        </div>
+
         <div class="card today-card">
           <h2>🌙 今天睡了多久？</h2>
           <div class="deposit-row">
@@ -564,6 +615,34 @@
       <!-- ===== 体重 ===== -->
       <section class="view" id="view-weight" style="display:none">
         <h2 class="view-title">⚖️ 体重打卡</h2>
+
+        <div class="card pet-stage" id="weightStage">
+          <div class="pet-scene">
+            <svg class="pet-svg" viewBox="0 0 200 200">
+              <ellipse cx="60" cy="64" rx="17" ry="21" fill="#ffb3c6"/>
+              <ellipse cx="140" cy="64" rx="17" ry="21" fill="#ffb3c6"/>
+              <circle cx="100" cy="112" r="62" fill="#ffc2d1"/>
+              <g id="weightFaceHappy">
+                <path d="M70 100 q11 12 22 0" stroke="#a8526b" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M108 100 q11 12 22 0" stroke="#a8526b" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <circle cx="62" cy="122" r="9" fill="#ff7aa2" opacity=".55"/>
+                <circle cx="138" cy="122" r="9" fill="#ff7aa2" opacity=".55"/>
+                <path d="M88 156 q12 10 24 0" stroke="#a8526b" stroke-width="4" fill="none" stroke-linecap="round"/>
+              </g>
+              <g id="weightFaceSad" style="display:none">
+                <path d="M70 106 q11 -10 22 0" stroke="#a8526b" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M108 106 q11 -10 22 0" stroke="#a8526b" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M88 160 q12 -10 24 0" stroke="#a8526b" stroke-width="4" fill="none" stroke-linecap="round"/>
+              </g>
+              <ellipse cx="100" cy="134" rx="26" ry="18" fill="#ff9eb5"/>
+              <circle cx="90" cy="134" r="4" fill="#a8526b"/>
+              <circle cx="110" cy="134" r="4" fill="#a8526b"/>
+              <circle class="tear" cx="120" cy="112" r="6" fill="#7ec8e3"/>
+            </svg>
+          </div>
+          <div class="mood-text" id="weightMoodText"></div>
+          <div class="mood-sub" id="weightMoodSub"></div>
+        </div>
 
         <div class="card today-card">
           <h2>🍎 今天称体重了吗？</h2>
@@ -905,6 +984,33 @@
     }
   }
 
+  // 睡眠小猫 / 体重小猪 的心情
+  function setPetMood(stageId, happyId, sadId, textId, subId, happy, happyText, sadText, happySub, sadSub) {
+    var st = $(stageId);
+    st.classList.remove('happy', 'sad');
+    st.classList.add(happy ? 'happy' : 'sad');
+    $(happyId).style.display = happy ? '' : 'none';
+    $(sadId).style.display = happy ? 'none' : '';
+    $(textId).textContent = happy ? happyText : sadText;
+    $(subId).textContent = happy ? happySub : sadSub;
+  }
+  function refreshPetMoods() {
+    var today = todayStr();
+    var sp = S.projects.sleep, wp = S.projects.weight;
+    var slept = sp.records.some(function (r) { return r.date === today; });
+    setPetMood('sleepStage', 'sleepFaceHappy', 'sleepFaceSad', 'sleepMoodText', 'sleepMoodSub', slept,
+      '😴 小猫睡得香香，满足地打呼噜～',
+      '🥺 小猫困得睁不开眼，今天还没记录睡眠哦',
+      '记录睡眠，让小猫安心睡个好觉',
+      '哪怕记一下小时数，小猫就不慌啦');
+    var weighed = wp.records.some(function (r) { return r.date === today; });
+    setPetMood('weightStage', 'weightFaceHappy', 'weightFaceSad', 'weightMoodText', 'weightMoodSub', weighed,
+      '🐷 小猪圆滚滚，开心地扭扭屁股～',
+      '🥺 小猪扁着嘴，今天还没称体重呢',
+      '记录体重，小猪陪你一起变更好',
+      '称一下体重，小猪就有精神啦');
+  }
+
   function fireworks() {
     var colors = ['#ff8fab', '#fb6f92', '#ffd166', '#8fd694', '#7ec8e3', '#c77dff', '#ff9f1c'];
     var W = window.innerWidth, H = window.innerHeight;
@@ -1058,6 +1164,7 @@
     var hitDays = p.records.filter(function (r) { return r.value >= p.target; }).length;
     $('sleepHit').textContent = p.records.length ? (hitDays + ' / ' + p.records.length) : '--';
     drawLineChart('sleepChart', p.records, { unit: 'h', target: p.target, color: '#5b8def', max: 14 });
+    refreshPetMoods();
   }
   $('sleepBtn').addEventListener('click', function () {
     var p = S.projects.sleep;
@@ -1068,6 +1175,7 @@
     $('sleepInput').value = '';
     renderSleep();
     confetti();
+    var st = $('sleepStage'); st.classList.add('pop'); setTimeout(function () { st.classList.remove('pop'); }, 600);
     toast(v >= p.target ? '😴 达标好眠！明天继续～' : '🌙 记录成功，早点休息哦');
   });
   $('sleepInput').addEventListener('keydown', function (e) {
@@ -1102,6 +1210,7 @@
       $('weightChange').textContent = '--';
     }
     drawLineChart('weightChart', p.records, { unit: 'kg', target: p.target, color: '#2ec4b6', max: 14 });
+    refreshPetMoods();
   }
   $('weightBtn').addEventListener('click', function () {
     var p = S.projects.weight;
@@ -1112,6 +1221,7 @@
     $('weightInput').value = '';
     renderWeight();
     confetti();
+    var st = $('weightStage'); st.classList.add('pop'); setTimeout(function () { st.classList.remove('pop'); }, 600);
     toast('⚖️ 记录成功！');
   });
   $('weightInput').addEventListener('keydown', function (e) {
@@ -1171,6 +1281,7 @@
   renderName();
   render();
   initMood();
+  refreshPetMoods();
   switchView('save');
 })();
 </script>
